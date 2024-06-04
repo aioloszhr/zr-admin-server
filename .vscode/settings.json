@@ -1,0 +1,5 @@
+{
+    "editor.formatOnSave": true,
+    "prettier.enable": true,
+    "typescript.validate.enable": true
+}
