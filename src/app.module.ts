@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { User } from './user/entities/user.entity';
+import { User } from './modules/user/entities/user.entity';
+import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
@@ -14,7 +13,7 @@ import { JwtModule } from '@nestjs/jwt';
 			port: 3306,
 			username: 'root',
 			password: 'Zhangrui@092',
-			database: 'login_test',
+			database: 'react_admin',
 			synchronize: true,
 			logging: true,
 			entities: [User],
@@ -28,12 +27,11 @@ import { JwtModule } from '@nestjs/jwt';
 			global: true,
 			secret: 'aioloszhr',
 			signOptions: {
-				expiresIn: '7d'
+				expiresIn: '30m'
 			}
 		}),
-		UserModule
-	],
-	controllers: [AppController],
-	providers: [AppService]
+		UserModule,
+		AuthModule
+	]
 })
 export class AppModule {}

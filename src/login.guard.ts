@@ -19,18 +19,23 @@ export class LoginGuard implements CanActivate {
 		const request: Request = context.switchToHttp().getRequest();
 
 		const authorization = request.header('authorization') || '';
-		const bearer = authorization.split(' ');
-		if (!bearer || bearer.length < 2) {
-			throw new UnauthorizedException('登录 token 错误');
+
+		if (!authorization) {
+			throw new UnauthorizedException('用户未登录！');
 		}
 
-		const token = bearer[1];
+		const bearer = authorization.split(' ');
+		if (!bearer || bearer.length < 2) {
+			throw new UnauthorizedException('登录 token 错误！');
+		}
+
 		try {
+			const token = bearer[1];
 			const info = this.jwtService.verify(token);
 			(request as any).user = info.user;
 			return true;
 		} catch (e) {
-			throw new UnauthorizedException('登录 token 失效，请重新登录');
+			throw new UnauthorizedException('登录 token 失效，请重新登录！');
 		}
 	}
 }
