@@ -1,17 +1,12 @@
 import { Injectable, Inject, Logger, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../../modules/user/entities/user.entity';
-import * as crypto from 'node:crypto';
-import { LoginDto } from './dto/login.dto';
+import { User } from '../../user/entities/user.entity';
+import * as bcryptjs from 'bcryptjs';
+import { LoginDto } from '../dto/login.dto';
+import { CaptchaService } from './captcha.service';
 
 import { Repository } from 'typeorm';
-
-function md5(str: string) {
-	const hash = crypto.createHash('md5');
-	hash.update(str);
-	return hash.digest('hex');
-}
 
 @Injectable()
 export class AuthService {
@@ -21,7 +16,8 @@ export class AuthService {
 	@Inject(JwtService)
 	private jwtService: JwtService;
 
-	private logger = new Logger();
+	@Inject(CaptchaService)
+	private captchaService: CaptchaService;
 
 	async login(loginDTO: LoginDto) {
 		const user = await this.userRepository.findOneBy({
@@ -32,16 +28,31 @@ export class AuthService {
 			throw new HttpException(
 				{
 					statusCode: '-1',
-					message: '用户不存在！'
+					message: '用户不存在'
 				},
 				200
 			);
 		}
-		if (user.password !== md5(loginDTO.password)) {
+
+		if (!bcryptjs.compare(user.password, loginDTO.password)) {
 			throw new HttpException(
 				{
 					statusCode: '-1',
-					message: '密码错误！'
+					message: '密码错误'
+				},
+				200
+			);
+		}
+
+		const { captchaId, captcha } = loginDTO;
+
+		const result = await this.captchaService.check(captchaId, captcha);
+
+		if (!result) {
+			throw new HttpException(
+				{
+					statusCode: '-1',
+					message: '验证码错误'
 				},
 				200
 			);

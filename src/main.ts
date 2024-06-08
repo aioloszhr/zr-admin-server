@@ -1,19 +1,20 @@
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { setupSwagger } from './setup-swapper';
 import { AppModule } from './app.module';
+import { SharedModule } from './shared/shared.module';
+import { ApiConfigService } from './shared/services/api-config.service';
+import { ResponseResultInterceptor } from './interceptor/response-result.interceptor';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
-	/** 使用swagger生成api文档 */
-	const config = new DocumentBuilder()
-		.setTitle('React Admin Server')
-		.setDescription('React后台管理系统接口文档')
-		.setVersion('1.0')
-		.addTag('Nest')
-		.build();
-	const document = SwaggerModule.createDocument(app, config);
-	SwaggerModule.setup('doc', app, document);
+	app.useGlobalInterceptors(new ResponseResultInterceptor());
+	/** 获取配置 */
+	const configService = app.select(SharedModule).get(ApiConfigService);
+
+	if (configService.documentationEnabled) {
+		setupSwagger(app);
+	}
 
 	await app.listen(3000);
 }

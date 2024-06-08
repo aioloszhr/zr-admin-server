@@ -1,27 +1,21 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { DataSource } from 'typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './modules/user/entities/user.entity';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
+import { SharedModule } from './shared/shared.module';
+import { ApiConfigService } from './shared/services/api-config.service';
 
 @Module({
 	imports: [
-		TypeOrmModule.forRoot({
-			type: 'mysql',
-			host: 'localhost',
-			port: 3306,
-			username: 'root',
-			password: 'Zhangrui@092',
-			database: 'react_admin',
-			synchronize: true,
-			logging: true,
-			entities: [User],
-			poolSize: 10,
-			connectorPackage: 'mysql2',
-			extra: {
-				authPlugin: 'sha256_password'
-			}
+		AuthModule,
+		UserModule,
+		ConfigModule.forRoot({
+			isGlobal: true,
+			envFilePath: [`.env.${process.env.NODE_ENV}`]
 		}),
 		JwtModule.register({
 			global: true,
@@ -30,8 +24,22 @@ import { JwtModule } from '@nestjs/jwt';
 				expiresIn: '30m'
 			}
 		}),
-		UserModule,
-		AuthModule
+		TypeOrmModule.forRootAsync({
+			imports: [SharedModule],
+			useFactory: (configService: ApiConfigService) => configService.mysqlConfig,
+			inject: [ApiConfigService],
+			dataSourceFactory: async options => {
+				if (!options) {
+					throw new Error('Invalid options passed');
+				}
+				const dataSource = await new DataSource(options).initialize();
+				return dataSource;
+			}
+		}),
+		CacheModule.register({
+			isGlobal: true,
+			ttl: 60000
+		})
 	]
 })
 export class AppModule {}
