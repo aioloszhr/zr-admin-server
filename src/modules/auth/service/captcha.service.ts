@@ -3,18 +3,18 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import * as svgCaptcha from 'svg-captcha';
 import * as svgBase64 from 'mini-svg-data-uri';
 import { uuid } from '@/utils/uuid';
-import { CaptchaConfigService } from '@/shared/services/captcha-config.service';
+import { ApiConfigService } from '@/shared/services/api-config.service';
 
 import type { Cache } from 'cache-manager';
-import type { FormulaCaptchaOptions } from '../interface';
+import type { FormulaCaptchaOptions } from '@/types';
 
 @Injectable()
 export class CaptchaService {
 	@Inject(CACHE_MANAGER)
 	private cacheManager: Cache;
 
-	@Inject(CaptchaConfigService)
-	private captcha: CaptchaConfigService;
+	@Inject(ApiConfigService)
+	private apiConfig: ApiConfigService;
 
 	async formula(options?: FormulaCaptchaOptions) {
 		const { data, text } = svgCaptcha.createMathExpr(options);
@@ -43,9 +43,9 @@ export class CaptchaService {
 	}
 
 	private getStoreId(id: string): string {
-		if (!this.captcha.captchaConfig.idPrefix) {
+		if (!this.apiConfig.captchaConfig.idPrefix) {
 			return id;
 		}
-		return `${this.captcha.captchaConfig.idPrefix}:${id}`;
+		return `${this.apiConfig.captchaConfig.idPrefix}:${id}`;
 	}
 }

@@ -1,9 +1,8 @@
 import { Global, Module, type Provider } from '@nestjs/common';
 
 import { ApiConfigService } from './services/api-config.service';
-import { CaptchaConfigService } from './services/captcha-config.service';
 
-const providers: Provider[] = [ApiConfigService, CaptchaConfigService];
+const providers: Provider[] = [ApiConfigService];
 
 @Global()
 @Module({
