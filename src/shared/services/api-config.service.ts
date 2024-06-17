@@ -4,7 +4,7 @@ import { isNil } from 'lodash';
 import { User } from '@/modules/user/entities/user.entity';
 
 import { type TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { type CaptchaOptions } from '@/types';
+import type { CaptchaOptions, RedisOptions } from '@/types';
 
 @Injectable()
 export class ApiConfigService {
@@ -63,6 +63,15 @@ export class ApiConfigService {
 		return {
 			expirationTime: this.getNumber('CAPTCHA_EXPIRATIONTIME'),
 			idPrefix: this.getString('CAPTCHA_IDPREFIX')
+		};
+	}
+
+	get redisConfig(): RedisOptions {
+		return {
+			host: this.getString('REDIS_HOST'),
+			port: this.getNumber('REDIS_PORT'),
+			expire: this.getNumber('REDIS_EXPIRE'),
+			refreshExpire: this.getNumber('REDIS_REFRESH_EXPIRE')
 		};
 	}
 

@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { RedisModule } from './modules/redis/redis.module';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
@@ -22,13 +21,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 		ConfigModule.forRoot({
 			isGlobal: true,
 			envFilePath: [`.env.${process.env.NODE_ENV}`]
-		}),
-		JwtModule.register({
-			global: true,
-			secret: 'aioloszhr',
-			signOptions: {
-				expiresIn: '30m'
-			}
 		}),
 		TypeOrmModule.forRootAsync({
 			imports: [SharedModule],

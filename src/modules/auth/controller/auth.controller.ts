@@ -6,7 +6,8 @@ import {
 	ValidationPipe,
 	Inject,
 	HttpCode,
-	HttpStatus
+	HttpStatus,
+	HttpException
 } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../service/auth.service';
@@ -26,6 +27,20 @@ export class AuthController {
 	@HttpCode(HttpStatus.OK)
 	@Post('login')
 	async login(@Body(ValidationPipe) loginDto: LoginDto) {
+		const { captchaId, captcha } = loginDto;
+
+		const result = await this.captchaService.check(captchaId, captcha);
+
+		if (!result) {
+			throw new HttpException(
+				{
+					statusCode: '-1',
+					message: '验证码错误'
+				},
+				200
+			);
+		}
+
 		return await this.authService.login(loginDto);
 	}
 

@@ -1,27 +1,31 @@
 import { Injectable, Inject, Logger, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { User } from '../../user/entities/user.entity';
+import { Repository } from 'typeorm';
 import * as bcryptjs from 'bcryptjs';
+import { RedisService } from '@/modules/redis/service/redis.service';
+import { User } from '../../user/entities/user.entity';
 import { LoginDto } from '../dto/login.dto';
 import { CaptchaService } from './captcha.service';
-
-import { Repository } from 'typeorm';
+import { ApiConfigService } from '@/shared/services/api-config.service';
+import { uuid } from '@/utils/uuid';
 
 @Injectable()
 export class AuthService {
 	@InjectRepository(User)
 	private userRepository: Repository<User>;
 
-	@Inject(JwtService)
-	private jwtService: JwtService;
-
 	@Inject(CaptchaService)
 	private captchaService: CaptchaService;
 
-	async login(loginDTO: LoginDto) {
+	@Inject(RedisService)
+	private redisService: RedisService;
+
+	@Inject(ApiConfigService)
+	private apiConfigService: ApiConfigService;
+
+	async login(loginDto: LoginDto) {
 		const user = await this.userRepository.findOneBy({
-			userName: loginDTO.userName
+			userName: loginDto.userName
 		});
 
 		if (!user) {
@@ -34,7 +38,7 @@ export class AuthService {
 			);
 		}
 
-		if (!bcryptjs.compare(user.password, loginDTO.password)) {
+		if (!bcryptjs.compare(user.password, loginDto.password)) {
 			throw new HttpException(
 				{
 					statusCode: '-1',
@@ -44,40 +48,19 @@ export class AuthService {
 			);
 		}
 
-		const { captchaId, captcha } = loginDTO;
+		const { id } = user;
 
-		const result = await this.captchaService.check(captchaId, captcha);
+		const { expire, refreshExpire } = this.apiConfigService.redisConfig;
 
-		if (!result) {
-			throw new HttpException(
-				{
-					statusCode: '-1',
-					message: '验证码错误'
-				},
-				200
-			);
-		}
+		const token = uuid();
+		const refreshToken = uuid();
 
-		const { id, userName } = user;
-		const accessToken = this.jwtService.sign(
-			{
-				user: { id, userName }
-			},
-			{
-				expiresIn: '3m'
-			}
-		);
-		const refreshToken = this.jwtService.sign(
-			{
-				user: { id, userName }
-			},
-			{
-				expiresIn: '7d'
-			}
-		);
+		await this.redisService.zToken({ id, token, refreshToken, expire, refreshExpire });
 
 		return {
-			accessToken,
+			expire,
+			refreshExpire,
+			token,
 			refreshToken
 		};
 	}

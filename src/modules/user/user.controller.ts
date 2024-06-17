@@ -1,13 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpStatus, Inject } from '@nestjs/common';
 import { UserDto } from './dto/user.dto';
 import { UserService } from './user.service';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserVO } from './vo/user.vo';
 
 @ApiTags('user')
 @Controller('user')
 export class UserController {
-	constructor(private readonly userService: UserService) {}
+	@Inject(UserService)
+	private userService: UserService;
 
 	@ApiOperation({ description: '创建用户' })
 	@ApiResponse({
