@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { isNil } from 'lodash';
-import { User } from '@/modules/user/entities/user.entity';
+import { UserEntity } from '@/modules/user/entities/user';
+import { RoleEntity } from '@/modules/role/entities/role';
+import { UserRoleEntity } from '@/modules/user/entities/user.role';
 
 import { type TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { CaptchaOptions, RedisOptions } from '@/types';
@@ -42,7 +44,7 @@ export class ApiConfigService {
 
 	get mysqlConfig(): TypeOrmModuleOptions {
 		return {
-			entities: [User],
+			entities: [UserEntity, RoleEntity, UserRoleEntity],
 			type: 'mysql',
 			host: this.getString('DB_HOST'),
 			port: this.getNumber('DB_PORT'),

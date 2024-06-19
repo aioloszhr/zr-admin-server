@@ -1,12 +1,10 @@
 import { Global, Module } from '@nestjs/common';
 import { createClient } from 'redis';
-import { RedisService } from './service/redis.service';
 import { ApiConfigService } from '@/shared/services/api-config.service';
 
 @Global()
 @Module({
 	providers: [
-		RedisService,
 		{
 			provide: 'REDIS_CLIENT',
 			inject: [ApiConfigService],
@@ -21,6 +19,6 @@ import { ApiConfigService } from '@/shared/services/api-config.service';
 			}
 		}
 	],
-	exports: [RedisService]
+	exports: ['REDIS_CLIENT']
 })
 export class RedisModule {}

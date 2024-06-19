@@ -62,6 +62,9 @@ importers:
       nanoid:
         specifier: ^3.3.7
         version: 3.3.7
+      node-rsa:
+        specifier: ^1.1.1
+        version: 1.1.1
       redis:
         specifier: ^4.6.14
         version: 4.6.14
@@ -108,6 +111,9 @@ importers:
       '@types/node':
         specifier: ^20.3.1
         version: 20.14.0
+      '@types/node-rsa':
+        specifier: ^1.1.4
+        version: 1.1.4
       '@types/supertest':
         specifier: ^6.0.0
         version: 6.0.2
@@ -765,6 +771,9 @@ packages:
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
 
+  '@types/node-rsa@1.1.4':
+    resolution: {integrity: sha512-dB0ECel6JpMnq5ULvpUTunx3yNm8e/dIkv8Zu9p2c8me70xIRUUG3q+qXRwcSf9rN3oqamv4116iHy90dJGRpA==}
+
   '@types/node@20.14.0':
     resolution: {integrity: sha512-5cHBxFGJx6L4s56Bubp4fglrEpmyJypsqI6RgzMfBHWUJQGWAAi8cWcgetEbZXHYXo9C2Fa4EEds/uSyS4cxmA==}
 
@@ -1022,6 +1031,9 @@ packages:
 
   asap@2.0.6:
     resolution: {integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==}
+
+  asn1@0.2.6:
+    resolution: {integrity: sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==}
 
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
@@ -2357,6 +2369,9 @@ packages:
 
   node-releases@2.0.14:
     resolution: {integrity: sha512-y10wOWt8yZpqXmOgRo77WaHEmhYQYGNA6y421PKsKYWEK8aW+cqAphborZDhqfyKrbZEN92CN1X2KbafY2s7Yw==}
+
+  node-rsa@1.1.1:
+    resolution: {integrity: sha512-Jd4cvbJMryN21r5HgxQOpMEqv+ooke/korixNNK3mGqfGJmy0M77WDDzo/05969+OkMy3XW1UuZsSmW9KQm7Fw==}
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -4039,6 +4054,10 @@ snapshots:
 
   '@types/mime@1.3.5': {}
 
+  '@types/node-rsa@1.1.4':
+    dependencies:
+      '@types/node': 20.14.0
+
   '@types/node@20.14.0':
     dependencies:
       undici-types: 5.26.5
@@ -4336,6 +4355,10 @@ snapshots:
   array-union@2.1.0: {}
 
   asap@2.0.6: {}
+
+  asn1@0.2.6:
+    dependencies:
+      safer-buffer: 2.1.2
 
   asynckit@0.4.0: {}
 
@@ -5911,6 +5934,10 @@ snapshots:
   node-int64@0.4.0: {}
 
   node-releases@2.0.14: {}
+
+  node-rsa@1.1.1:
+    dependencies:
+      asn1: 0.2.6
 
   normalize-path@3.0.0: {}
 

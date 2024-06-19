@@ -1,6 +1,6 @@
-import { Injectable, HttpException, Inject } from '@nestjs/common';
+import { Injectable, HttpException, Inject, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+import { UserEntity } from './entities/user';
 import { UserDto } from './dto/user.dto';
 import { UserVO } from './vo/user.vo';
 import { omit } from 'lodash';
@@ -9,8 +9,8 @@ import * as bcryptjs from 'bcryptjs';
 
 @Injectable()
 export class UserService {
-	@InjectRepository(User)
-	private userRepository: Repository<User>;
+	@InjectRepository(UserEntity)
+	private userRepository: Repository<UserEntity>;
 
 	async createUser(entity: UserDto): Promise<UserVO> {
 		const { userName, password, phoneNumber, email } = entity;
@@ -18,37 +18,19 @@ export class UserService {
 		let isExist = (await this.userRepository.countBy({ userName })) > 0;
 
 		if (isExist) {
-			throw new HttpException(
-				{
-					statusCode: '-1',
-					message: '当前用户名已存在'
-				},
-				200
-			);
+			throw new HttpException('当前用户名已存在', HttpStatus.BAD_REQUEST);
 		}
 
 		isExist = (await this.userRepository.countBy({ phoneNumber })) > 0;
 
 		if (isExist) {
-			throw new HttpException(
-				{
-					statusCode: '-1',
-					message: '当前手机号已存在'
-				},
-				200
-			);
+			throw new HttpException('当前手机号已存在', HttpStatus.BAD_REQUEST);
 		}
 
 		isExist = (await this.userRepository.countBy({ email })) > 0;
 
 		if (isExist) {
-			throw new HttpException(
-				{
-					statusCode: '-1',
-					message: '当前邮箱已存在'
-				},
-				200
-			);
+			throw new HttpException('当前邮箱已存在', HttpStatus.BAD_REQUEST);
 		}
 
 		/**

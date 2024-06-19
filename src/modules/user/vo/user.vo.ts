@@ -1,6 +1,6 @@
-import { User } from '../entities/user.entity';
+import { UserEntity } from '../entities/user';
 import { OmitVO } from '@/utils/vo';
 
-export class UserVO extends OmitVO(User, ['password']) {
+export class UserVO extends OmitVO(UserEntity, ['password']) {
 	avatarPath?: string;
 }

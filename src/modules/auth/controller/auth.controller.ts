@@ -12,39 +12,44 @@ import {
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../service/auth.service';
 import { CaptchaService } from '../service/captcha.service';
-import { LoginDto } from '../dto/login.dto';
+import { RsaService } from '@/shared/services/rsa.service';
+import { LoginDTO } from '../dto/login';
+import { RefreshTokenDto } from '../dto/refresh.token';
+import { UserVO } from '@/modules/user/vo/user.vo';
 
 @ApiTags('auth')
-@Controller('auth')
+@Controller('/auth')
 export class AuthController {
-	@Inject()
+	@Inject(AuthService)
 	private authService: AuthService;
 
-	@Inject()
+	@Inject(CaptchaService)
 	private captchaService: CaptchaService;
 
-	@ApiBody({ type: LoginDto })
+	@Inject(RsaService)
+	private rsaService: RsaService;
+
+	@ApiBody({ type: LoginDTO })
 	@HttpCode(HttpStatus.OK)
-	@Post('login')
-	async login(@Body(ValidationPipe) loginDto: LoginDto) {
-		const { captchaId, captcha } = loginDto;
+	@Post('/login')
+	async login(@Body(ValidationPipe) loginDTO: LoginDTO) {
+		const password = await this.rsaService.decrypt(loginDTO.publicKey, loginDTO.password);
 
-		const result = await this.captchaService.check(captchaId, captcha);
-
-		if (!result) {
-			throw new HttpException(
-				{
-					statusCode: '-1',
-					message: '验证码错误'
-				},
-				200
-			);
+		if (!password) {
+			throw new HttpException('登录出现异常，请重新登录', HttpStatus.BAD_REQUEST);
 		}
 
-		return await this.authService.login(loginDto);
+		return await this.authService.login(loginDTO);
 	}
 
-	@Get('captcha')
+	@Post('/refresh/token')
+	async refreshToken(refreshTokenDto: RefreshTokenDto) {
+		if (!refreshTokenDto.refreshToken) {
+			throw new HttpException('用户凭证已过期，请重新登录！', HttpStatus.UNAUTHORIZED);
+		}
+	}
+
+	@Get('/captcha')
 	async getImageCaptcha() {
 		const { id, imageBase64 } = await this.captchaService.formula({
 			height: 40,
@@ -56,5 +61,15 @@ export class AuthController {
 			id,
 			imageBase64
 		};
+	}
+
+	@Get('/publicKey')
+	async getPublicKey() {
+		return await this.rsaService.getPublicKey();
+	}
+
+	@Get('/current/user')
+	async getCurrentUser(): Promise<UserVO> {
+		return await this.authService.getUserById('1');
 	}
 }
