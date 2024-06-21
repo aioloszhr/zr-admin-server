@@ -4,6 +4,7 @@ import { isNil } from 'lodash';
 import { UserEntity } from '@/modules/user/entities/user';
 import { RoleEntity } from '@/modules/role/entities/role';
 import { UserRoleEntity } from '@/modules/user/entities/user.role';
+import { MenuEntity } from '@/modules/menu/entity/menu';
 
 import { type TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { CaptchaOptions, RedisOptions } from '@/types';
@@ -44,7 +45,7 @@ export class ApiConfigService {
 
 	get mysqlConfig(): TypeOrmModuleOptions {
 		return {
-			entities: [UserEntity, RoleEntity, UserRoleEntity],
+			entities: [UserEntity, RoleEntity, UserRoleEntity, MenuEntity],
 			type: 'mysql',
 			host: this.getString('DB_HOST'),
 			port: this.getNumber('DB_PORT'),

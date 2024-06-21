@@ -7,18 +7,19 @@ import {
 	Inject,
 	HttpCode,
 	HttpStatus,
-	HttpException
+	HttpException,
+	Req
 } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../service/auth.service';
 import { CaptchaService } from '../service/captcha.service';
 import { RsaService } from '@/shared/services/rsa.service';
 import { LoginDTO } from '../dto/login';
-import { RefreshTokenDto } from '../dto/refresh.token';
-import { UserVO } from '@/modules/user/vo/user.vo';
+import { RefreshTokenDTO } from '../dto/refresh.token';
+import { UserVO } from '@/modules/user/vo/user';
 
 @ApiTags('auth')
-@Controller('/auth')
+@Controller('auth')
 export class AuthController {
 	@Inject(AuthService)
 	private authService: AuthService;
@@ -31,7 +32,7 @@ export class AuthController {
 
 	@ApiBody({ type: LoginDTO })
 	@HttpCode(HttpStatus.OK)
-	@Post('/login')
+	@Post('login')
 	async login(@Body(ValidationPipe) loginDTO: LoginDTO) {
 		const password = await this.rsaService.decrypt(loginDTO.publicKey, loginDTO.password);
 
@@ -42,14 +43,14 @@ export class AuthController {
 		return await this.authService.login(loginDTO);
 	}
 
-	@Post('/refresh/token')
-	async refreshToken(refreshTokenDto: RefreshTokenDto) {
-		if (!refreshTokenDto.refreshToken) {
+	@Post('refresh/token')
+	async refreshToken(refreshTokenDTO: RefreshTokenDTO) {
+		if (!refreshTokenDTO.refreshToken) {
 			throw new HttpException('用户凭证已过期，请重新登录！', HttpStatus.UNAUTHORIZED);
 		}
 	}
 
-	@Get('/captcha')
+	@Get('captcha')
 	async getImageCaptcha() {
 		const { id, imageBase64 } = await this.captchaService.formula({
 			height: 40,
@@ -63,13 +64,14 @@ export class AuthController {
 		};
 	}
 
-	@Get('/publicKey')
+	@Get('publicKey')
 	async getPublicKey() {
 		return await this.rsaService.getPublicKey();
 	}
 
-	@Get('/current/user')
-	async getCurrentUser(): Promise<UserVO> {
-		return await this.authService.getUserById('1');
+	@Get('current/user')
+	async getCurrentUser(@Req() req: Request) {
+		const userId = req['userInfo']?.userId;
+		return await this.authService.getUserById(userId);
 	}
 }

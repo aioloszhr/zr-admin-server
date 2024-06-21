@@ -6,7 +6,7 @@ import { LoginDTO } from '../dto/login';
 import { CaptchaService } from './captcha.service';
 import { ApiConfigService } from '@/shared/services/api-config.service';
 import { uuid } from '@/utils/uuid';
-import { RefreshTokenDto } from '../dto/refresh.token';
+import { RefreshTokenDTO } from '../dto/refresh.token';
 import { RedisClientType } from 'redis';
 import { UserEntity } from '@/modules/user/entities/user';
 import { UserRoleEntity } from '@/modules/user/entities/user.role';
@@ -71,7 +71,7 @@ export class AuthService {
 		};
 	}
 
-	async refreshToken(refreshTokenDto: RefreshTokenDto) {
+	async refreshToken(refreshTokenDto: RefreshTokenDTO) {
 		const userId = await this.redisClient.get(`refreshToken:${refreshTokenDto.refreshToken}`);
 
 		if (!userId) {
