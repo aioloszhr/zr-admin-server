@@ -20,8 +20,7 @@ export class AuthMiddleware implements NestMiddleware {
 
 		const userInfo = JSON.parse(userInfoStr);
 
-		console.log('userInfo', userInfo);
-
+		req['token'] = token;
 		req['userInfo'] = userInfo;
 
 		next();

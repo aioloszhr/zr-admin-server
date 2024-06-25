@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MenuModule } from './modules/menu/menu.module';
+import { RoleModule } from './modules/role/role.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from './shared/shared.module';
@@ -16,6 +17,7 @@ import { AuthMiddleware } from './middleware/auth';
 		AuthModule,
 		UserModule,
 		MenuModule,
+		RoleModule,
 		/** 注册redis */
 		RedisModule,
 		/** 注册配置文件 */

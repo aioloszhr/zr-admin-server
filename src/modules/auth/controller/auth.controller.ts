@@ -10,13 +10,12 @@ import {
 	HttpException,
 	Req
 } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../service/auth.service';
 import { CaptchaService } from '../service/captcha.service';
 import { RsaService } from '@/shared/services/rsa.service';
 import { LoginDTO } from '../dto/login';
 import { RefreshTokenDTO } from '../dto/refresh.token';
-import { UserVO } from '@/modules/user/vo/user';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -30,7 +29,7 @@ export class AuthController {
 	@Inject(RsaService)
 	private rsaService: RsaService;
 
-	@ApiBody({ type: LoginDTO })
+	@ApiOperation({ description: '登陆' })
 	@HttpCode(HttpStatus.OK)
 	@Post('login')
 	async login(@Body(ValidationPipe) loginDTO: LoginDTO) {
@@ -41,6 +40,12 @@ export class AuthController {
 		}
 
 		return await this.authService.login(loginDTO);
+	}
+
+	@ApiOperation({ description: '退出登录' })
+	@Post('/logout')
+	async logout(@Req() req: Request) {
+		return await this.authService.logout(req);
 	}
 
 	@Post('refresh/token')

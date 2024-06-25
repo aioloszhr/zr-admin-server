@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsPhoneNumber, IsEmail, IsString } from 'class-validator';
+import { IsNotEmpty, IsPhoneNumber, IsEmail, IsString, IsArray } from 'class-validator';
 import { BaseDTO } from '@/common/base.dto';
 import { UserEntity } from '../entities/user';
 
@@ -26,4 +26,8 @@ export class UserDTO extends BaseDTO<UserEntity> {
 
 	@ApiProperty({ description: '性别（0:女，1:男）', nullable: true })
 	sex?: number;
+
+	@ApiProperty({ description: '用户角色' })
+	@IsArray()
+	roleIds?: string[];
 }

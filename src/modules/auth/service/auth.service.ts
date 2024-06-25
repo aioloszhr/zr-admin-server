@@ -1,6 +1,6 @@
 import { Injectable, Inject, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import * as bcryptjs from 'bcryptjs';
 import { LoginDTO } from '../dto/login';
 import { CaptchaService } from './captcha.service';
@@ -11,11 +11,22 @@ import { RedisClientType } from 'redis';
 import { UserEntity } from '@/modules/user/entities/user';
 import { UserRoleEntity } from '@/modules/user/entities/user.role';
 import { RoleEntity } from '@/modules/role/entities/role';
+import { MenuEntity } from '@/modules/menu/entity/menu';
+import { RoleMenuEntity } from '@/modules/role/entities/role.menu';
 
 @Injectable()
 export class AuthService {
 	@InjectRepository(UserEntity)
 	private userRepository: Repository<UserEntity>;
+
+	@InjectRepository(UserRoleEntity)
+	private userRoleRepository: Repository<UserRoleEntity>;
+
+	@InjectRepository(MenuEntity)
+	private menuRepository: Repository<MenuEntity>;
+
+	@InjectRepository(RoleMenuEntity)
+	private roleMenuRepository: Repository<RoleMenuEntity>;
 
 	@Inject(CaptchaService)
 	private captchaService: CaptchaService;
@@ -53,6 +64,8 @@ export class AuthService {
 			.expire(`token:${token}`, expire)
 			.set(`refreshToken:${refreshToken}`, user.id)
 			.expire(`refreshToken:${refreshToken}`, refreshExpire)
+			.sAdd(`userToken_${user.id}`, token)
+			.sAdd(`userRefreshToken_${user.id}`, refreshToken)
 			.exec();
 
 		const { captchaId, captcha } = loginDTO;
@@ -69,6 +82,22 @@ export class AuthService {
 			token,
 			refreshToken
 		};
+	}
+
+	async logout(req: Request) {
+		const token: string = req['token'];
+		const refreshToken: string = req['userInfo']?.refreshToken;
+		// 清除token和refreshToken
+		const res = await this.redisClient
+			.multi()
+			.del(`token:${token}`)
+			.del(`refreshToken:${refreshToken}`)
+			.exec();
+
+		if (res.some(item => item[0])) {
+			throw new HttpException('退出登录失败', HttpStatus.BAD_REQUEST);
+		}
+		return true;
 	}
 
 	async refreshToken(refreshTokenDto: RefreshTokenDTO) {
@@ -110,8 +139,24 @@ export class AuthService {
 			.getOne();
 
 		if (!entity) {
-			throw new HttpException('当前用户不存在！', HttpStatus.BAD_REQUEST);
+			throw new HttpException('当前用户不存在', HttpStatus.BAD_REQUEST);
 		}
-		return entity;
+
+		// 先把用户分配的角色查询出来
+		const userRoles = await this.userRoleRepository.findBy({
+			userId: userId
+		});
+		// 根据已分配的角色查询已分配的菜单id数组
+		const roleMenus = await this.roleMenuRepository.find({
+			where: { roleId: In(userRoles.map(userRole => userRole.roleId)) }
+		});
+		// 根据菜单id数组查询菜单信息，这里加了个特殊判断，如果是管理员直接返回全部菜单，正常这个应该走数据迁移，数据迁移还没做，就先用这种方案。
+		const query = { id: In(roleMenus.map(roleMenu => roleMenu.menuId)) };
+		const menus = await this.menuRepository.find({
+			where: query,
+			order: { orderNumber: 'ASC', createDate: 'DESC' }
+		});
+
+		return { ...entity.toVO(), menus };
 	}
 }
