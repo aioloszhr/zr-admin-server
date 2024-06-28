@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { createQueryBuilder, likeQueryByQueryBuilder } from '@/utils/typeorm';
@@ -6,6 +6,9 @@ import { RolePageDTO } from '../dto/role.page';
 import { RoleEntity } from '../entities/role';
 import { RoleDTO } from '../dto/role';
 import { RoleMenuEntity } from '../entities/role.menu';
+import { UserRoleEntity } from '@/modules/user/entities/user.role';
+import { SocketService } from '@/modules/socket/socket.service';
+import { SocketMessageType } from '@/modules/socket/message';
 
 @Injectable()
 export class RoleService {
@@ -13,6 +16,10 @@ export class RoleService {
 	private roleModel: Repository<RoleEntity>;
 	@InjectRepository(RoleMenuEntity)
 	private roleMenuModel: Repository<RoleMenuEntity>;
+	@InjectRepository(UserRoleEntity)
+	private userRoleModel: Repository<UserRoleEntity>;
+	@Inject(SocketService)
+	private socketService: SocketService;
 	@InjectDataSource()
 	private defaultDataSource: DataSource;
 
@@ -88,6 +95,18 @@ export class RoleService {
 						.execute();
 
 					const oldMenuIds = roleMenus.map(menu => menu.menuId);
+					if (oldMenuIds.length !== data.menuIds.length) {
+						// 如果有变化，查询所有分配了该角色的用户，给对应所有用户发通知
+						const userIds = (await this.userRoleModel.findBy({ roleId: data.id })).map(
+							userRole => userRole.userId
+						);
+
+						userIds.forEach(userId => {
+							this.socketService.sendMessage(userId, {
+								type: SocketMessageType.PermissionChange
+							});
+						});
+					}
 				}
 			}
 		});

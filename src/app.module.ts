@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { RoleModule } from './modules/role/role.module';
 import { RedisModule } from './modules/redis/redis.module';
+import { SocketModule } from './modules/socket/socket.module';
 import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
@@ -18,6 +19,7 @@ import { AuthMiddleware } from './middleware/auth';
 		UserModule,
 		MenuModule,
 		RoleModule,
+		SocketModule,
 		/** 注册redis */
 		RedisModule,
 		/** 注册配置文件 */

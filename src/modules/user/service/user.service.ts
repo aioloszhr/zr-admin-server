@@ -3,12 +3,14 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { omit } from 'lodash';
 import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import * as bcryptjs from 'bcryptjs';
+import { Redis } from 'ioredis';
 import { UserEntity } from '../entities/user';
 import { UserDTO } from '../dto/user';
 import { UserVO } from '../vo/user';
 import { UserRoleEntity } from '../entities/user.role';
 import { RoleEntity } from '@/modules/role/entities/role';
-import { RedisClientType } from 'redis';
+import { SocketService } from '@/modules/socket/socket.service';
+import { SocketMessageType } from '@/modules/socket/message';
 
 @Injectable()
 export class UserService {
@@ -19,7 +21,9 @@ export class UserService {
 	@InjectDataSource()
 	private defaultDataSource: DataSource;
 	@Inject('REDIS_CLIENT')
-	private redisClient: RedisClientType;
+	private redisClient: Redis;
+	@Inject(SocketService)
+	private socketService: SocketService;
 
 	async createUser(userDTO: UserDTO): Promise<UserVO> {
 		const entity = userDTO.toEntity();
@@ -94,9 +98,10 @@ export class UserService {
 			userId: userDTO.id
 		});
 
+		// 开启事务
 		await this.defaultDataSource.transaction(async manager => {
 			Promise.all([
-				manager
+				await manager
 					.createQueryBuilder()
 					.update(UserEntity)
 					.set({
@@ -106,8 +111,8 @@ export class UserService {
 					})
 					.where('id = :id', { id: userDTO.id })
 					.execute(),
-				manager.remove(UserRoleEntity, userRolesMap),
-				manager.save(
+				await manager.remove(UserRoleEntity, userRolesMap),
+				await manager.save(
 					UserRoleEntity,
 					userDTO.roleIds.map(roleId => {
 						const userRole = new UserRoleEntity();
@@ -117,6 +122,15 @@ export class UserService {
 					})
 				)
 			]);
+
+			// 检查当前用户分配的角色有没有变化，如果有变化，发通知给前端
+			const oldRoleIds = userRolesMap.map(role => role.roleId);
+			// 先判断两个数量是不是一样的
+			if (oldRoleIds.length !== userDTO.roleIds.length) {
+				this.socketService.sendMessage(userDTO.id, {
+					type: SocketMessageType.PermissionChange
+				});
+			}
 		});
 
 		const entity = this.userRepository.findOneBy({ id });
@@ -142,8 +156,8 @@ export class UserService {
 
 	async removeUser(id: number) {
 		await this.defaultDataSource.transaction(async manager => {
-			const tokens = await this.redisClient.sMembers(`userToken_${id}`);
-			const refreshTokens = await this.redisClient.sMembers(`userRefreshToken_${id}`);
+			const tokens = await this.redisClient.smembers(`userToken_${id}`);
+			const refreshTokens = await this.redisClient.smembers(`userRefreshToken_${id}`);
 
 			await Promise.all([
 				manager

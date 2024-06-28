@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { createClient } from 'redis';
+import { Redis } from 'ioredis';
 import { ApiConfigService } from '@/shared/services/api-config.service';
 
 @Global()
@@ -10,11 +10,11 @@ import { ApiConfigService } from '@/shared/services/api-config.service';
 			inject: [ApiConfigService],
 			async useFactory(configService: ApiConfigService) {
 				const { host, port } = configService.redisConfig;
-				const client = createClient({
-					socket: { host, port },
-					database: 2
+				const client = new Redis({
+					host,
+					port,
+					db: 2
 				});
-				await client.connect();
 				return client;
 			}
 		}

@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable, NestMiddleware, Inject } from '@nestjs/common';
-import { RedisClientType } from 'redis';
+import { Redis } from 'ioredis';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
 	@Inject('REDIS_CLIENT')
-	private redisClient: RedisClientType;
+	private redisClient: Redis;
 
 	async use(req: Request, res: Response, next: () => void) {
 		let token = req.headers['authorization']?.replace('Bearer', '') as string;

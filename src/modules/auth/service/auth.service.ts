@@ -2,12 +2,12 @@ import { Injectable, Inject, Logger, HttpException, HttpStatus } from '@nestjs/c
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import * as bcryptjs from 'bcryptjs';
+import { Redis } from 'ioredis';
 import { LoginDTO } from '../dto/login';
 import { CaptchaService } from './captcha.service';
 import { ApiConfigService } from '@/shared/services/api-config.service';
 import { uuid } from '@/utils/uuid';
 import { RefreshTokenDTO } from '../dto/refresh.token';
-import { RedisClientType } from 'redis';
 import { UserEntity } from '@/modules/user/entities/user';
 import { UserRoleEntity } from '@/modules/user/entities/user.role';
 import { RoleEntity } from '@/modules/role/entities/role';
@@ -32,7 +32,7 @@ export class AuthService {
 	private captchaService: CaptchaService;
 
 	@Inject('REDIS_CLIENT')
-	private redisClient: RedisClientType;
+	private redisClient: Redis;
 
 	@Inject(ApiConfigService)
 	private apiConfigService: ApiConfigService;
@@ -64,8 +64,8 @@ export class AuthService {
 			.expire(`token:${token}`, expire)
 			.set(`refreshToken:${refreshToken}`, user.id)
 			.expire(`refreshToken:${refreshToken}`, refreshExpire)
-			.sAdd(`userToken_${user.id}`, token)
-			.sAdd(`userRefreshToken_${user.id}`, refreshToken)
+			.sadd(`userToken_${user.id}`, token)
+			.sadd(`userRefreshToken_${user.id}`, refreshToken)
 			.exec();
 
 		const { captchaId, captcha } = loginDTO;

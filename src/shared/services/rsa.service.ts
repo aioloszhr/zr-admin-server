@@ -1,11 +1,11 @@
 import { Inject, Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { RedisClientType } from 'redis';
+import { Redis } from 'ioredis';
 import * as NodeRSA from 'node-rsa';
 
 @Injectable()
 export class RsaService {
 	@Inject('REDIS_CLIENT')
-	private redisClient: RedisClientType;
+	private redisClient: Redis;
 
 	async getPublicKey(): Promise<string> {
 		const key = new NodeRSA({ b: 512 });
