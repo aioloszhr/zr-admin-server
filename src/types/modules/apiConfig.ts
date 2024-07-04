@@ -1,4 +1,3 @@
-/** 验证码相关类型 */
 interface BaseCaptchaOptions {
 	// 验证码长度，默认4
 	size?: number;
@@ -33,10 +32,15 @@ export interface TextCaptchaOptions {
 
 export type FormulaCaptchaOptions = BaseCaptchaOptions;
 
-/** redis相关类型 */
 export interface RedisOptions {
 	host: string;
 	port: number;
 	expire: number;
 	refreshExpire: number;
+}
+
+export interface AiOptions {
+	apiKey: string;
+	modelName: string;
+	baseUrl: string;
 }

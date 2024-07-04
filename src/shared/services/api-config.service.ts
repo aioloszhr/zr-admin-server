@@ -4,7 +4,7 @@ import { isNil } from 'lodash';
 import { EverythingSubscriber } from '@/typeorm-event-subscriber';
 
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import type { CaptchaOptions, RedisOptions } from '@/types';
+import type { CaptchaOptions, RedisOptions, AiOptions } from '@/types';
 
 @Injectable()
 export class ApiConfigService {
@@ -74,6 +74,14 @@ export class ApiConfigService {
 			port: this.getNumber('REDIS_PORT'),
 			expire: this.getNumber('REDIS_EXPIRE'),
 			refreshExpire: this.getNumber('REDIS_REFRESH_EXPIRE')
+		};
+	}
+
+	get aiConfig(): AiOptions {
+		return {
+			apiKey: this.getString('API_KEY'),
+			modelName: this.getString('MODEL_NAME'),
+			baseUrl: this.getString('BASE_URL')
 		};
 	}
 

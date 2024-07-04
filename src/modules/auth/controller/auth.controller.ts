@@ -30,7 +30,6 @@ export class AuthController {
 	private rsaService: RsaService;
 
 	@ApiOperation({ description: '登陆' })
-	@HttpCode(HttpStatus.OK)
 	@Post('login')
 	async login(@Body(ValidationPipe) loginDTO: LoginDTO) {
 		const password = await this.rsaService.decrypt(loginDTO.publicKey, loginDTO.password);

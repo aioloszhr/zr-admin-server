@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { DataSource } from 'typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -6,12 +7,13 @@ import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { RoleModule } from './modules/role/role.module';
-import { RedisModule } from './modules/redis/redis.module';
 import { SocketModule } from './modules/socket/socket.module';
-import { ConfigModule } from '@nestjs/config';
+import { LangchainChatModule } from './modules/langchain-chat/langchain-chat.module';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { AuthMiddleware } from './middleware/auth';
+import { RedisModule } from './redis/redis.module';
+import { OpenaiModule } from './openai/openai.module';
 
 @Module({
 	imports: [
@@ -20,8 +22,11 @@ import { AuthMiddleware } from './middleware/auth';
 		MenuModule,
 		RoleModule,
 		SocketModule,
+		LangchainChatModule,
 		/** 注册redis */
 		RedisModule,
+		/** 注册openai服务 */
+		OpenaiModule,
 		/** 注册配置文件 */
 		ConfigModule.forRoot({
 			isGlobal: true,
