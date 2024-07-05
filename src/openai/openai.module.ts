@@ -6,7 +6,7 @@ import { ApiConfigService } from '@/shared/services/api-config.service';
 @Module({
 	providers: [
 		{
-			provide: 'OPENAI_CLIENT',
+			provide: 'KIMIAPI_CLIENT',
 			inject: [ApiConfigService],
 			async useFactory(configService: ApiConfigService) {
 				const { apiKey, modelName, baseUrl } = configService.aiConfig;
@@ -21,6 +21,6 @@ import { ApiConfigService } from '@/shared/services/api-config.service';
 			}
 		}
 	],
-	exports: ['OPENAI_CLIENT']
+	exports: ['KIMIAPI_CLIENT']
 })
 export class OpenaiModule {}

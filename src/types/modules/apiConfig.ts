@@ -44,3 +44,7 @@ export interface AiOptions {
 	modelName: string;
 	baseUrl: string;
 }
+
+export interface SerpApiOptions {
+	apiKey: string;
+}

@@ -7,8 +7,8 @@ export class LangchainChatController {
 	@Inject(LangchainChatService)
 	private langchainChatService: LangchainChatService;
 
-	@Sse('sse')
-	async typing(@Query() messageDTO: MessageDTO) {
-		return await this.langchainChatService.typing(messageDTO);
+	@Sse('kimi-api')
+	async kimiApi(@Query() messageDTO: MessageDTO) {
+		return await this.langchainChatService.kimiApi(messageDTO);
 	}
 }

@@ -2,27 +2,25 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage } from '@langchain/core/messages';
+import {
+	PromptTemplate,
+	ChatPromptTemplate,
+	PipelinePromptTemplate
+} from '@langchain/core/prompts';
+import { SerpAPILoader } from '@langchain/community/document_loaders/web/serpapi';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { MessageDTO } from '../dto/message';
+import { ApiConfigService } from '@/shared/services/api-config.service';
 
 @Injectable()
 export class LangchainChatService {
-	private messageSubject = new Subject<MessageEvent>();
+	@Inject('KIMIAPI_CLIENT')
+	private kimiApiClient: ChatOpenAI;
 
-	@Inject('OPENAI_CLIENT')
-	private openaiClient: ChatOpenAI;
+	@Inject(ApiConfigService)
+	private apiConfigService: ApiConfigService;
 
-	sse(): Observable<MessageEvent> {
-		return this.messageSubject.asObservable();
-	}
-
-	async typing(messageDTO: MessageDTO) {
-		const { user_query } = messageDTO;
-		const outputPrase = new StringOutputParser();
-		const simpleChain = this.openaiClient.pipe(outputPrase);
-
-		const text = await simpleChain.invoke([new HumanMessage(user_query)]);
-
+	private generateObservable(text: string) {
 		return new Observable<any>(observer => {
 			let currentIndex = 0;
 			const intervalId = setInterval(() => {
@@ -42,5 +40,34 @@ export class LangchainChatService {
 				}
 			}, 100);
 		});
+	}
+
+	private getCurrentDateStr() {
+		return new Date().toLocaleDateString();
+	}
+
+	private generateGreeting(timeOfDay: string) {
+		const date = this.getCurrentDateStr();
+		switch (timeOfDay) {
+			case 'morning':
+				return date + ' 早上好';
+			case 'afternoon':
+				return date + ' 下午好';
+			case 'evening':
+				return date + ' 晚上好';
+			default:
+				return date + ' 你好';
+		}
+	}
+
+	/** 接入kimiApi */
+	async kimiApi(messageDTO: MessageDTO) {
+		const { user_query } = messageDTO;
+		const outputPrase = new StringOutputParser();
+		const simpleChain = this.kimiApiClient.pipe(outputPrase);
+
+		const text = await simpleChain.invoke([new HumanMessage(user_query)]);
+
+		return this.generateObservable(text);
 	}
 }

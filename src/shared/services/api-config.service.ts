@@ -4,7 +4,7 @@ import { isNil } from 'lodash';
 import { EverythingSubscriber } from '@/typeorm-event-subscriber';
 
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import type { CaptchaOptions, RedisOptions, AiOptions } from '@/types';
+import type { CaptchaOptions, RedisOptions, AiOptions, SerpApiOptions } from '@/types';
 
 @Injectable()
 export class ApiConfigService {
@@ -82,6 +82,12 @@ export class ApiConfigService {
 			apiKey: this.getString('API_KEY'),
 			modelName: this.getString('MODEL_NAME'),
 			baseUrl: this.getString('BASE_URL')
+		};
+	}
+
+	get serpApiConfig(): SerpApiOptions {
+		return {
+			apiKey: this.getString('SERP_API')
 		};
 	}
 
