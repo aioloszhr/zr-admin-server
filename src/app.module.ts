@@ -9,11 +9,13 @@ import { MenuModule } from './modules/menu/menu.module';
 import { RoleModule } from './modules/role/role.module';
 import { SocketModule } from './modules/socket/socket.module';
 import { LangchainChatModule } from './modules/langchain-chat/langchain-chat.module';
+import { TrainDataModule } from './modules/train-data/train-data.module';
 import { SharedModule } from './shared/shared.module';
 import { ApiConfigService } from './shared/services/api-config.service';
 import { AuthMiddleware } from './middleware/auth';
 import { RedisModule } from './redis/redis.module';
 import { OpenaiModule } from './openai/openai.module';
+import { EmbeddingModule } from './embedding/embedding.module';
 
 @Module({
 	imports: [
@@ -23,10 +25,13 @@ import { OpenaiModule } from './openai/openai.module';
 		RoleModule,
 		SocketModule,
 		LangchainChatModule,
+		TrainDataModule,
 		/** 注册redis */
 		RedisModule,
 		/** 注册openai服务 */
 		OpenaiModule,
+		/** 注册Embedding模型 */
+		EmbeddingModule,
 		/** 注册配置文件 */
 		ConfigModule.forRoot({
 			isGlobal: true,

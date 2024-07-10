@@ -4,7 +4,13 @@ import { isNil } from 'lodash';
 import { EverythingSubscriber } from '@/typeorm-event-subscriber';
 
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import type { CaptchaOptions, RedisOptions, AiOptions, SerpApiOptions } from '@/types';
+import type {
+	CaptchaOptions,
+	RedisOptions,
+	AiOptions,
+	SerpApiOptions,
+	TongyiApiOptions
+} from '@/types';
 
 @Injectable()
 export class ApiConfigService {
@@ -88,6 +94,12 @@ export class ApiConfigService {
 	get serpApiConfig(): SerpApiOptions {
 		return {
 			apiKey: this.getString('SERP_API')
+		};
+	}
+
+	get tongyiApiConfig(): TongyiApiOptions {
+		return {
+			apiKey: this.getString('TONGYI_API')
 		};
 	}
 

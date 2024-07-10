@@ -48,3 +48,7 @@ export interface AiOptions {
 export interface SerpApiOptions {
 	apiKey: string;
 }
+
+export interface TongyiApiOptions {
+	apiKey: string;
+}

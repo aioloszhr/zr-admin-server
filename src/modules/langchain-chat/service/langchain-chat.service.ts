@@ -1,24 +1,21 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage } from '@langchain/core/messages';
-import {
-	PromptTemplate,
-	ChatPromptTemplate,
-	PipelinePromptTemplate
-} from '@langchain/core/prompts';
-import { SerpAPILoader } from '@langchain/community/document_loaders/web/serpapi';
 import { StringOutputParser } from '@langchain/core/output_parsers';
+import { AlibabaTongyiEmbeddings } from '@langchain/community/embeddings/alibaba_tongyi';
+import { FaissStore } from '@langchain/community/vectorstores/faiss';
+import { RunnableSequence } from '@langchain/core/runnables';
+import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { covertDocsToString } from '@/utils/base';
 import { MessageDTO } from '../dto/message';
-import { ApiConfigService } from '@/shared/services/api-config.service';
 
 @Injectable()
 export class LangchainChatService {
 	@Inject('KIMIAPI_CLIENT')
 	private kimiApiClient: ChatOpenAI;
-
-	@Inject(ApiConfigService)
-	private apiConfigService: ApiConfigService;
+	@Inject('TONGYI_EMBEDDING')
+	private tongyiEmbedding: AlibabaTongyiEmbeddings;
 
 	private generateObservable(text: string) {
 		return new Observable<any>(observer => {
@@ -42,25 +39,6 @@ export class LangchainChatService {
 		});
 	}
 
-	private getCurrentDateStr() {
-		return new Date().toLocaleDateString();
-	}
-
-	private generateGreeting(timeOfDay: string) {
-		const date = this.getCurrentDateStr();
-		switch (timeOfDay) {
-			case 'morning':
-				return date + ' 早上好';
-			case 'afternoon':
-				return date + ' 下午好';
-			case 'evening':
-				return date + ' 晚上好';
-			default:
-				return date + ' 你好';
-		}
-	}
-
-	/** 接入kimiApi */
 	async kimiApi(messageDTO: MessageDTO) {
 		const { user_query } = messageDTO;
 		const outputPrase = new StringOutputParser();
@@ -69,5 +47,46 @@ export class LangchainChatService {
 		const text = await simpleChain.invoke([new HumanMessage(user_query)]);
 
 		return this.generateObservable(text);
+	}
+
+	async vectorData(messageDTO: MessageDTO) {
+		const { user_query } = messageDTO;
+		const directory = 'src/database/qiu';
+
+		const vectorStore = await FaissStore.load(directory, this.tongyiEmbedding);
+
+		const retriever = vectorStore.asRetriever(2);
+
+		const TEMPLATE = `
+		你是一个熟读刘慈欣的《球状闪电》的终极原著党，精通根据作品原文详细解释和回答问题，你在回答时会引用作品原文。
+		并且回答时仅根据原文，尽可能回答用户问题，如果原文中没有相关内容，你可以回答“原文中没有相关内容”，
+
+		以下是原文中跟用户回答相关的内容：
+		{context}
+
+		现在，你需要基于原文，回答以下问题：
+		{question}`;
+
+		const prompt = ChatPromptTemplate.fromTemplate(TEMPLATE);
+
+		const contextRetriverChain = RunnableSequence.from([
+			input => input.question,
+			retriever,
+			covertDocsToString
+		]);
+
+		const ragChain = RunnableSequence.from([
+			{
+				context: contextRetriverChain,
+				question: input => input.question
+			},
+			prompt,
+			this.kimiApiClient,
+			new StringOutputParser()
+		]);
+
+		const result = await ragChain.invoke({ question: user_query });
+
+		return this.generateObservable(result);
 	}
 }
